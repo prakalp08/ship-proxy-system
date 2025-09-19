@@ -1,0 +1,25 @@
+version: "3.9"
+
+services:
+  offshore:
+    build:
+      context: ./server
+      dockerfile: Dockerfile.offshore
+    container_name: offshore
+    ports:
+      - "9090:9090"
+
+  ship:
+    build:
+      context: ./client
+      dockerfile: Dockerfile.ship
+    container_name: ship
+    ports:
+      - "8080:8080"
+    depends_on:
+      - offshore
+    command: >
+      python ship_proxy.py
+      --offshore-host=offshore
+      --offshore-port=9090
+      --listen-port=8080
