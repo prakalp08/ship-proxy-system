@@ -1,40 +1,58 @@
-# Ship Proxy System 
+# Ship Proxy System
 
 ## Overview
-This project implements the **Ship Proxy (client)** and **Offshore Proxy (server)** to reduce satellite internet costs by maintaining a **single persistent TCP connection** from the ship to shore.  
-All HTTP/HTTPS requests from browsers or tools like `curl` are routed through the ship proxy and forwarded sequentially to the offshore proxy, which relays them to the internet.
+This project implements the **Ship Proxy (client)** and **Offshore Proxy (server)** to reduce satellite internet costs by maintaining a **single persistent TCP connection**.  
+All HTTP/HTTPS traffic is routed through the ship proxy → offshore proxy → internet.
 
-- **Client (Ship Proxy)** → runs inside the ship, exposes port `8080`.
-- **Server (Offshore Proxy)** → runs offshore, listens on port `9090`.
-- **Sequential Handling** → all requests processed one at a time over the persistent connection.
-- **Supports** → HTTP, HTTPS (via CONNECT), all HTTP methods (GET/POST/PUT/DELETE, etc.).
+- **Ship Proxy (client)** → runs on port `8080`  
+- **Offshore Proxy (server)** → runs on port `9090`  
+- **Supports** → HTTP, HTTPS (CONNECT), all HTTP methods  
 
 ---
 
 ## Running with Docker Compose
-### 1. Build and Start
-```bash
+
+### Build & Start
+```
 docker compose up --build -d
+```
 
-esting the Proxy
+### Stop
+```
+docker compose down
+```
+### Testing
 
-Run these commands from your host (Linux/Mac).
-On Windows, replace curl with curl.exe.
+#### Run these from your host machine:
 
-HTTP Test
+##### HTTP
+```
 curl -x http://localhost:8080 http://httpforever.com/
-
-POST Test
+```
+##### POST
+```
 curl -x http://localhost:8080 -X POST \
-     -H "Content-Type: application/json" \
-     -d '{"user":"joe","action":"board"}' \
-     http://httpbin.org/post
-
-HTTPS Test
+  -H "Content-Type: application/json" \
+  -d '{"user":"joe","action":"board"}' \
+  http://httpbin.org/post
+```
+##### HTTPS
+```
 curl -x http://localhost:8080 https://www.example.com/
-
-Sequential Requests (parallel test)
+```
+##### Sequential Requests
+```
 curl -x http://localhost:8080 http://httpforever.com/ & \
 curl -x http://localhost:8080 http://httpforever.com/ & \
 curl -x http://localhost:8080 http://httpforever.com/ &
 wait
+```
+
+## Architecture
+
+```mermaid
+flowchart LR
+    Browser[Browser / Curl] --> ShipProxy[Ship Proxy<br/>:8080]
+    ShipProxy --> OffshoreProxy[Offshore Proxy<br/>:9090]
+    OffshoreProxy --> Internet[Internet]
+```
